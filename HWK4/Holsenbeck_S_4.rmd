@@ -47,6 +47,6 @@ fmdb <- unite(fmdb,col ='City,State',c(`city`,`State`),sep=",",remove = F)
 #Facebook & Twitter http://regexr.com/3grgn
 rgxtst <- c(gsub("(?#[http://www.facebook.com]|[https://www.facebook.com])(?:\\:\\/\\/)(?:[:punct:]+)(?:[pages]+)?|(?:[.com]+)?\\/\\K([[:alnum:]\\-]+)\\/[:print:]","\\1",fmdb$Facebook))
 as.data.frame(rgxtst)
-(rgx <- as.data.frame(gsub(".*\\.com\\/([A-Z.])","\\1",fmdb$Facebook)))
+(rgx <- as.data.frame(gsub(".*(?<=.com/)([A-Z.])","\\1",fmdb$Facebook,perl = T)))
 ```
 
