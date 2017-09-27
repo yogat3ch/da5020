@@ -1,7 +1,7 @@
 ---
-title: "Holsenbeck_S_1"
+title: "Holsenbeck_S_4"
 author: "Stephen Synchronicity"
-date: "September 8, 2017"
+date: "2017-09-27"
 output: 
   html_document: 
     css: C:\Users\Stephen\Documents\R\win-library\3.4\rmarkdown\rmarkdown\templates\neu_hwk\resources\styles.css
@@ -32,7 +32,7 @@ library("DT")
 </div>
 ## Read Data
 ```{r}
-fmdb <- read.csv(file = "C:\\Users\\Stephen\\Documents\\Northeastern\\DA 5020 - Collect Store Retrieve Data\\Homework\\HWK4\\farmers_market.csv")
+fmdb <- as.tibble(read.csv(file = "C:\\Users\\Stephen\\Documents\\Northeastern\\DA 5020 - Collect Store Retrieve Data\\Homework\\HWK4\\farmers_market.csv"))
 View(fmdb)
 ```
 ## Warm-up
@@ -43,10 +43,22 @@ fmdb <- unite(fmdb,col ='City,State',c(`city`,`State`),sep=",",remove = F)
 ```
 ## 1
 (20 points) Cleanup the Facebook and Twitter column to let them contain only the facebook username or twitter handle name. I.e., replace “https://www.facebook.com/pages/Cameron-Park-Farmers-Market/97634216535?ref=hl” with “Cameron-Park-Farmers-Market”, “https://twitter.com/FarmMarket125th” with “FarmMarket125th”, and “@21acres” with “21acres”.
-```{r}
-#Facebook & Twitter http://regexr.com/3grgn
-rgxtst <- c(gsub("(?#[http://www.facebook.com]|[https://www.facebook.com])(?:\\:\\/\\/)(?:[:punct:]+)(?:[pages]+)?|(?:[.com]+)?\\/\\K([[:alnum:]\\-]+)\\/[:print:]","\\1",fmdb$Facebook))
-as.data.frame(rgxtst)
-(rgx <- as.data.frame(gsub(".*(?<=.com/)([A-Z.])","\\1",fmdb$Facebook,perl = T)))
+```{r "1 Facebook"}
+#Remove .com .*(?<=.com/)([1-9A-Z.])
+(rgx <- as.tibble(gsub("(?:.*(?<=.com\\/))([1-9A-Za-z-.]+\\/?)(?:(?=\\/).*)?","\\1",fmdb$Facebook,perl = T)))
+#Remove Pages
+(rgx <- as.tibble(gsub("(?:.*(?<=pages\\/))([1-9A-Za-z-.]*)","\\1",rgx[[1]],perl = T)))
+#Remove Questions Marks https://regex101.com/r/6349Pu/4
+(rgx <- as.tibble(gsub("([1-9A-Za-z-.]*)(?:(?=\\?).*)","\\1",rgx[[1]],perl = T)))
+#Remove Slash and beyond
+(rgx <- as.tibble(gsub("([1-9A-Za-z-.]*)(?:(?=\\/).*)","\\1",rgx[[1]],perl = T)))
+fmdb$`FB_Short` <- rgx
+```
+```{r 'Twitter'}
+#Remove .com
+(rgx <- as.tibble(gsub("(?:.*(?<=.com\\/))([1-9A-Za-z-.]+)(?:(?=\\/).*)?","\\1",fmdb$Twitter,perl = T)))
+#Remove @
+(rgx <- as.tibble(gsub("@([A-Za-z0-9]+)","\\1",rgx[[1]],perl = T)))
+fmdb$`TW_Short` <- rgx
 ```
 
