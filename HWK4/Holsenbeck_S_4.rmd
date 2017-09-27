@@ -1,0 +1,52 @@
+---
+title: "Holsenbeck_S_1"
+author: "Stephen Synchronicity"
+date: "September 8, 2017"
+output: 
+  html_document: 
+    css: C:\Users\Stephen\Documents\R\win-library\3.4\rmarkdown\rmarkdown\templates\neu_hwk\resources\styles.css
+    highlight: zenburn
+    keep_md: yes
+    theme: readable
+    toc: yes
+    toc_float: true
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE,warning=FALSE,cache=TRUE, fig.align='center', fig.height=3.5, fig.width=5, tidy=TRUE, tidy.opts=list(width.cutoff=80))
+rmarkdown::html_dependency_jquery()
+rmarkdown::html_dependency_bootstrap("readable")
+rmarkdown::html_dependency_jqueryui()
+```
+```{r Libraries, echo=FALSE, results='hide'}
+library("tidyverse")
+library("htmltools")
+library("rmarkdown")
+library("gridExtra")
+library("DT")
+```
+
+#Homework 4
+<button data-toggle="collapse" data-target="#demo" class="btn">Homework Outline</button>
+<div id="demo" class="collapse">
+
+</div>
+## Read Data
+```{r}
+fmdb <- read.csv(file = "C:\\Users\\Stephen\\Documents\\Northeastern\\DA 5020 - Collect Store Retrieve Data\\Homework\\HWK4\\farmers_market.csv")
+View(fmdb)
+```
+## Warm-up
+This dataset stores city and state in different columns, what if you want to print out city and state in the format “City, State”?
+```{r}
+library(stringi)
+fmdb <- unite(fmdb,col ='City,State',c(`city`,`State`),sep=",",remove = F)
+```
+## 1
+(20 points) Cleanup the Facebook and Twitter column to let them contain only the facebook username or twitter handle name. I.e., replace “https://www.facebook.com/pages/Cameron-Park-Farmers-Market/97634216535?ref=hl” with “Cameron-Park-Farmers-Market”, “https://twitter.com/FarmMarket125th” with “FarmMarket125th”, and “@21acres” with “21acres”.
+```{r}
+#Facebook & Twitter http://regexr.com/3grgn
+rgxtst <- c(gsub("(?#[http://www.facebook.com]|[https://www.facebook.com])(?:\\:\\/\\/)(?:[:punct:]+)(?:[pages]+)?|(?:[.com]+)?\\/\\K([[:alnum:]\\-]+)\\/[:print:]","\\1",fmdb$Facebook))
+as.data.frame(rgxtst)
+(rgx <- as.data.frame(gsub(".*\\.com\\/([A-Z.])","\\1",fmdb$Facebook)))
+```
+
