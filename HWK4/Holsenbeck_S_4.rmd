@@ -21,7 +21,6 @@ rmarkdown::html_dependency_jqueryui()
 library("tidyverse")
 library("htmltools")
 library("rmarkdown")
-library("gridExtra")
 library("DT")
 ```
 
@@ -33,7 +32,6 @@ library("DT")
 ## Read Data
 ```{r}
 fmdb <- as.tibble(read.csv(file = "C:\\Users\\Stephen\\Documents\\Northeastern\\DA 5020 - Collect Store Retrieve Data\\Homework\\HWK4\\farmers_market.csv"))
-View(fmdb)
 ```
 ## Warm-up
 This dataset stores city and state in different columns, what if you want to print out city and state in the format “City, State”?
@@ -41,9 +39,9 @@ This dataset stores city and state in different columns, what if you want to pri
 library(stringi)
 fmdb <- unite(fmdb,col ='City,State',c(`city`,`State`),sep=",",remove = F)
 ```
-## 1
+## Q1
 (20 points) Cleanup the Facebook and Twitter column to let them contain only the facebook username or twitter handle name. I.e., replace “https://www.facebook.com/pages/Cameron-Park-Farmers-Market/97634216535?ref=hl” with “Cameron-Park-Farmers-Market”, “https://twitter.com/FarmMarket125th” with “FarmMarket125th”, and “@21acres” with “21acres”.
-```{r "1 Facebook"}
+```{r "Q1 Facebook"}
 #Remove .com .*(?<=.com/)([1-9A-Z.])
 (rgx <- as.tibble(gsub("(?:.*(?<=.com\\/))([1-9A-Za-z-.]+\\/?)(?:(?=\\/).*)?","\\1",fmdb$Facebook,perl = T)))
 #Remove Pages
@@ -54,11 +52,27 @@ fmdb <- unite(fmdb,col ='City,State',c(`city`,`State`),sep=",",remove = F)
 (rgx <- as.tibble(gsub("([1-9A-Za-z-.]*)(?:(?=\\/).*)","\\1",rgx[[1]],perl = T)))
 fmdb$`FB_Short` <- rgx
 ```
-```{r 'Twitter'}
+```{r 'Q1 Twitter'}
 #Remove .com
 (rgx <- as.tibble(gsub("(?:.*(?<=.com\\/))([1-9A-Za-z-.]+)(?:(?=\\/).*)?","\\1",fmdb$Twitter,perl = T)))
 #Remove @
 (rgx <- as.tibble(gsub("@([A-Za-z0-9]+)","\\1",rgx[[1]],perl = T)))
 fmdb$`TW_Short` <- rgx
 ```
+## Q2
+(20 points) Clean up the city and street column. Remove state and county names from the city column and consolidate address spellings to be more consistent (e.g. “St.”, “ST.”, “Street” all become “St”; “and” changes to “&”, etc. . . )
+```{r Q2}
+
+#Clear everything in city col after ","
+fmdb$city <- gsub("([A-Za-z]+),.*","\\1",perl=T,fmdb$city)
+#Consistent Address Spellings
+#https://regex101.com/r/3tsHUR/1
+fmdb$street <- gsub("\\b(St\\.?)|(ST\\.?)","St",perl=T,fmdb$street)
+fmdb$street <- gsub("\\b([Ss][Tt][Rr][Ee][Ee][Tt][Ss]?\\.?,?)","St",perl=T,fmdb$street)
+fmdb$street <- gsub("\\b(([Aa][Nn][Dd]))","&",perl=T,fmdb$street)
+fmdb$street <- gsub("\\b(([Aa][Vv][Ee][Nn][Uu][Ee]))","Ave",perl=T,fmdb$street)
+fmdb$street <- gsub("\\b((T?[Hh]ighway))","Hwy",perl=T,fmdb$street)
+fmdb$street <- gsub("\\b([Rr]oad)","Rd",perl=T,fmdb$street)
+```
+
 
