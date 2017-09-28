@@ -90,16 +90,29 @@ summarize(Facebook = sum(Facebook != "",na.rm=T)/n(),
 #fct_recode doesn't appear to help when there are so many diverse entries
 #Opting for regex reduction of Farmer's Market to FM
 fmdb$Short_Name <- gsub("(.*)(?:Farme?r?'?s?'? Market)",perl=T,"\\1FM",fmdb$MarketName)
+library(forcats)
 (fm_by_loc <- fmdb %>%
   group_by(Location) %>%
   summarise(Number = n()))
-forcats::fct_recode(fm_by_loc$Location)
+#Factor Recode does not seem to function as intended, used scale_x_discrete instead
+    #mutate(Location = fct_recode(Location,
+# "Closed-off public street" = "Closed Public St",
+# "Co-located with wholesale market facility"	= "Wholesale Mkt Bldg",
+# "Educational institution"	= "Educational Bldg",
+# "Faith-based institution (e.g., church, mosque, synagogue, temple)"	= "Faith Bldg",
+# "Federal/State government building grounds"	= "Fed/State Gov Bldg",
+# "Healthcare Institution"	= "Healthcare Bldg",
+# "Local government building grounds" = "Local Gov Bldg",
+# "On a farm from: a barn, a greenhouse, a tent, a stand, etc" = "On a Farm",
+# "Other"	= "Other",
+# "NA" = "NA",
+# "Private business parking lot" = "Private Lot")))
+lbls <- rev(c("NA","Private Lot","Other","On a Farm","Local Gov Bldg","Healthcare Bldg","Fed/State Gov Bldg","Faith Bldg","Educational Bldg","Wholesale Mkt Bldg","Closed-off Public St"))
 ggplot(data = fm_by_loc,mapping=aes(x=Location,y=Number))+
-  geom_bar(stat="identity")+
+  geom_bar(stat="identity",fill="dark green")+
   coord_flip()+
-  scale_x_discrete(labels=c("NA","Private Lot","Other","On a Farm","Local Gov Bldg","Healthcare Bldg","Fed/State Gov Bldg","Faith Bldg", "Educational Bldg","Wholesale Mkt Bldg","Closed-off Public St"))+
+  scale_x_discrete(labels=lbls)+
   ylim(0,1000)
-#flip Label Vector 2017-09-28 1333
-
 ```
+
 
