@@ -30,13 +30,15 @@ library("DT")
 
 </div>
 ## Read Data
-```{r}
+```{r 'Read Data'}
 fmdb <- as.tibble(read.csv(file = "C:\\Users\\Stephen\\Documents\\Northeastern\\DA 5020 - Collect Store Retrieve Data\\Homework\\HWK4\\farmers_market.csv",na.strings="NA"))
 ```
 ## Warm-up
 This dataset stores city and state in different columns, what if you want to print out city and state in the format “City, State”?
-```{r}
+```{r 'City,State'}
 library(stringi)
+#From Q2, Clean city column to remove state and county, makes more sense before #creating this column
+fmdb$city <- gsub("([A-Za-z]+),.*","\\1",perl=T,fmdb$city)
 fmdb <- unite(fmdb,col ='City,State',c(`city`,`State`),sep=",",remove = F)
 ```
 ## Q1
@@ -76,11 +78,17 @@ fmdb$street <- gsub("\\b([Rr]oad)","Rd",perl=T,fmdb$street)
 ```
 ## Q3
 (20 points) Create a new data frame (tibble) that explains the online presence of each state’s farmers market. I.e., how many percentages of them have a facebook account? A twitter account? Or either of the accounts? (Hint: use the is.na() function)
-```{r}
-OPStats <- fmdb %>% 
+```{r 'Q3'}
+(OPStats <- fmdb %>% 
   group_by(State)%>%
-summarize(Facebook = sum(!is.na(Facebook))
-          )
-OPStats
+summarize(Facebook = sum(Facebook != "")/n(),
+          Twitter = sum(Twitter != "")/n()))
+```
+## Q4
+(20 points) Some of the farmer market names are quite long. Can you make them shorter by using the forcats::fct_recode function? Create a plot that demonstrates the number of farmers markets per location type. The locations should be ordered in descending order where the top of the graph will have the one with the highest number of markets.
+```{r 'Q4'}
+library(forcats)
+MN <- fmdb %>% fct_recode(MarketName)
+View(MN)
 ```
 
