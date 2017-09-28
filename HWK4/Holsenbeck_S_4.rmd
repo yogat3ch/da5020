@@ -31,7 +31,7 @@ library("DT")
 </div>
 ## Read Data
 ```{r 'Read Data'}
-fmdb <- as.tibble(read.csv(file = "C:\\Users\\Stephen\\Documents\\Northeastern\\DA 5020 - Collect Store Retrieve Data\\Homework\\HWK4\\farmers_market.csv",na.strings="NA"))
+fmdb <- as.tibble(read_csv(file = "C:\\Users\\Stephen\\Documents\\Northeastern\\DA 5020 - Collect Store Retrieve Data\\Homework\\HWK4\\farmers_market.csv"))
 ```
 ## Warm-up
 This dataset stores city and state in different columns, what if you want to print out city and state in the format “City, State”?
@@ -81,14 +81,25 @@ fmdb$street <- gsub("\\b([Rr]oad)","Rd",perl=T,fmdb$street)
 ```{r 'Q3'}
 (OPStats <- fmdb %>% 
   group_by(State)%>%
-summarize(Facebook = sum(Facebook != "")/n(),
-          Twitter = sum(Twitter != "")/n()))
+summarize(Facebook = sum(Facebook != "",na.rm=T)/n(),
+          Twitter = sum(Twitter != "",na.rm=T)/n()))
 ```
 ## Q4
 (20 points) Some of the farmer market names are quite long. Can you make them shorter by using the forcats::fct_recode function? Create a plot that demonstrates the number of farmers markets per location type. The locations should be ordered in descending order where the top of the graph will have the one with the highest number of markets.
 ```{r 'Q4'}
-library(forcats)
-MN <- fmdb %>% fct_recode(MarketName)
-View(MN)
+#fct_recode doesn't appear to help when there are so many diverse entries
+#Opting for regex reduction of Farmer's Market to FM
+fmdb$Short_Name <- gsub("(.*)(?:Farme?r?'?s?'? Market)",perl=T,"\\1FM",fmdb$MarketName)
+(fm_by_loc <- fmdb %>%
+  group_by(Location) %>%
+  summarise(Number = n()))
+forcats::fct_recode(fm_by_loc$Location)
+ggplot(data = fm_by_loc,mapping=aes(x=Location,y=Number))+
+  geom_bar(stat="identity")+
+  coord_flip()+
+  scale_x_discrete(labels=c("NA","Private Lot","Other","On a Farm","Local Gov Bldg","Healthcare Bldg","Fed/State Gov Bldg","Faith Bldg", "Educational Bldg","Wholesale Mkt Bldg","Closed-off Public St"))+
+  ylim(0,1000)
+#flip Label Vector 2017-09-28 1333
+
 ```
 
