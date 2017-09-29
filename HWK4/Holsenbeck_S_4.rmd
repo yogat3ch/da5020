@@ -27,7 +27,41 @@ library("DT")
 #Homework 4
 <button data-toggle="collapse" data-target="#demo" class="btn">Homework Outline</button>
 <div id="demo" class="collapse">
-
+Preparation
+Download US Farmers Markert Directory data from the website of USDA (click on “Export to Excel”).
+Rename the file as farmers_market.csv.
+Download the Know Your Farmer, Know Your Food Projects dataset and name it as kyfprojects.xls. Put it
+into the same folder.
+Read the data:
+Warm Up
+This dataset stores city and state in different columns, what if you want to print out city and state in the
+format “City, State”?
+Questions
+Please edit solution.Rmd and add your own solutions to these questions. Make your output as readable as
+possible. Next time you would need to create this file on your own. Feel free to try out other templates (e.g.
+Tufte Handout) if your are familiar with LaTex. But for whatever template you choose, you should always
+include a link to your GitHub repo at the first page of your PDF.
+1. (20 points) Cleanup the Facebook and Twitter column to let them contain only the facebook username or
+twitter handle name. I.e., replace “https://www.facebook.com/pages/Cameron-Park-Farmers-Market/
+97634216535?ref=hl” with “Cameron-Park-Farmers-Market”, “https://twitter.com/FarmMarket125th”
+with “FarmMarket125th”, and “@21acres” with “21acres”.
+2. (20 points) Clean up the city and street column. Remove state and county names from the city
+column and consolidate address spellings to be more consistent (e.g. “St.”, “ST.”, “Street” all become
+“St”; “and” changes to “&”, etc. . . ).
+3. (20 points) Create a new data frame (tibble) that explains the online presence of each state’s farmers
+market. I.e., how many percentages of them have a facebook account? A twitter account? Or either of
+the accounts? (Hint: use the is.na() function)
+4. (20 points) Some of the farmer market names are quite long. Can you make them shorter by using the
+forcats::fct_recode function? Create a plot that demonstrates the number of farmers markets per
+location type. The locations should be ordered in descending order where the top of the graph will
+have the one with the highest number of markets.
+5. (20 points)Write code to sanity check the kyfprojects data. For example, does Program Abbreviation
+always match Program Name for all the rows? (Try thinking of your own rules, too.)
+Submission
+You need to submit an .Rmd extension file as well as the generated pdf file. Be sure to state all the assumptions
+and give explanations as comments in the .Rmd file wherever needed to help us assess your submission.
+Please name the submission file LAST_FirstInitial_1.Rmd for example for John Smith’s 1st assignment, the
+file should be named Smith_J_1.Rmd.
 </div>
 ## Read Data
 ```{r 'Read Data'}
@@ -93,26 +127,30 @@ fmdb$Short_Name <- gsub("(.*)(?:Farme?r?'?s?'? Market)",perl=T,"\\1FM",fmdb$Mark
 library(forcats)
 (fm_by_loc <- fmdb %>%
   group_by(Location) %>%
-  summarise(Number = n()))
-#Factor Recode does not seem to function as intended, used scale_x_discrete instead
-    #mutate(Location = fct_recode(Location,
-# "Closed-off public street" = "Closed Public St",
-# "Co-located with wholesale market facility"	= "Wholesale Mkt Bldg",
-# "Educational institution"	= "Educational Bldg",
-# "Faith-based institution (e.g., church, mosque, synagogue, temple)"	= "Faith Bldg",
-# "Federal/State government building grounds"	= "Fed/State Gov Bldg",
-# "Healthcare Institution"	= "Healthcare Bldg",
-# "Local government building grounds" = "Local Gov Bldg",
-# "On a farm from: a barn, a greenhouse, a tent, a stand, etc" = "On a Farm",
-# "Other"	= "Other",
-# "NA" = "NA",
-# "Private business parking lot" = "Private Lot")))
-lbls <- rev(c("NA","Private Lot","Other","On a Farm","Local Gov Bldg","Healthcare Bldg","Fed/State Gov Bldg","Faith Bldg","Educational Bldg","Wholesale Mkt Bldg","Closed-off Public St"))
-ggplot(data = fm_by_loc,mapping=aes(x=Location,y=Number))+
+  summarise(Number = n())%>%
+  mutate(pct=round(Number/sum(Number)*100,2),
+         loc=fct_recode(Location,
+ "Closed Public St"="Closed-off public street",
+"Wholesale Mkt Bldg"="Co-located with wholesale market facility",
+"Educational Bldg"="Educational institution",
+"Faith Bldg"="Faith-based institution (e.g., church, mosque, synagogue, temple)",
+"Fed/State Gov Bldg"="Federal/State government building grounds",
+"Healthcare Bldg"="Healthcare Institution",
+"Local Gov Bldg"="Local government building grounds",
+"On a Farm"="On a farm from: a barn, a greenhouse, a tent, a stand, etc",
+"Other"	= "Other",
+"NA" = "NA",
+"Private Lot"="Private business parking lot"))%>%
+  arrange(desc(Number)))
+ggplot(data = fm_by_loc,mapping=aes(x=reorder(loc, Number),y=Number))+
   geom_bar(stat="identity",fill="dark green")+
   coord_flip()+
-  scale_x_discrete(labels=lbls)+
-  ylim(0,1000)
+  ylim(0,1000)+
+  labs(title = "Locations of Farmer Markets",
+  subtitle = "32% Shown, 68% not listed",
+  x="Location type",y = "Number per location type") +
+  geom_text(aes(label=paste0(pct,"%")),color="blue", stat="identity",hjust=-0.1, size=4)+
+  theme(plot.title = element_text(hjust = .5),plot.subtitle = element_text(hjust = .5))
 ```
-
+5. 
 
