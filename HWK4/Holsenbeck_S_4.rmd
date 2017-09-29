@@ -28,39 +28,38 @@ library("DT")
 <button data-toggle="collapse" data-target="#demo" class="btn">Homework Outline</button>
 <div id="demo" class="collapse">
 Preparation
-Download US Farmers Markert Directory data from the website of USDA (click on “Export to Excel”).
+Download US Farmers Markert Directory data from the website of USDA (click on "Export to Excel").
 Rename the file as farmers_market.csv.
 Download the Know Your Farmer, Know Your Food Projects dataset and name it as kyfprojects.xls. Put it
 into the same folder.
 Read the data:
 Warm Up
 This dataset stores city and state in different columns, what if you want to print out city and state in the
-format “City, State”?
+format "City, State"?
 Questions
 Please edit solution.Rmd and add your own solutions to these questions. Make your output as readable as
 possible. Next time you would need to create this file on your own. Feel free to try out other templates (e.g.
 Tufte Handout) if your are familiar with LaTex. But for whatever template you choose, you should always
 include a link to your GitHub repo at the first page of your PDF.
 1. (20 points) Cleanup the Facebook and Twitter column to let them contain only the facebook username or
-twitter handle name. I.e., replace “https://www.facebook.com/pages/Cameron-Park-Farmers-Market/
-97634216535?ref=hl” with “Cameron-Park-Farmers-Market”, “https://twitter.com/FarmMarket125th”
-with “FarmMarket125th”, and “@21acres” with “21acres”.
+twitter handle name. I.e., replace "https://www.facebook.com/pages/Cameron-Park-Farmers-Market/
+97634216535?ref=hl" with "Cameron-Park-Farmers-Market", "https://twitter.com/FarmMarket125th"
+with "FarmMarket125th", and "@21acres" with "21acres".
 2. (20 points) Clean up the city and street column. Remove state and county names from the city
-column and consolidate address spellings to be more consistent (e.g. “St.”, “ST.”, “Street” all become
-“St”; “and” changes to “&”, etc. . . ).
-3. (20 points) Create a new data frame (tibble) that explains the online presence of each state’s farmers
+column and consolidate address spellings to be more consistent (e.g. "St.", "ST.", "Street" all become
+"St"; "and" changes to "&", etc. . . ).
+3. (20 points) Create a new data frame (tibble) that explains the online presence of each state's farmers
 market. I.e., how many percentages of them have a facebook account? A twitter account? Or either of
 the accounts? (Hint: use the is.na() function)
 4. (20 points) Some of the farmer market names are quite long. Can you make them shorter by using the
 forcats::fct_recode function? Create a plot that demonstrates the number of farmers markets per
 location type. The locations should be ordered in descending order where the top of the graph will
 have the one with the highest number of markets.
-5. (20 points)Write code to sanity check the kyfprojects data. For example, does Program Abbreviation
-always match Program Name for all the rows? (Try thinking of your own rules, too.)
+5. (20 points)Write code to sanity check the kyfprojects data. For example, does Program Abbreviation always match Program Name for all the rows? (Try thinking of your own rules, too.)
 Submission
 You need to submit an .Rmd extension file as well as the generated pdf file. Be sure to state all the assumptions
 and give explanations as comments in the .Rmd file wherever needed to help us assess your submission.
-Please name the submission file LAST_FirstInitial_1.Rmd for example for John Smith’s 1st assignment, the
+Please name the submission file LAST_FirstInitial_1.Rmd for example for John Smith's 1st assignment, the
 file should be named Smith_J_1.Rmd.
 </div>
 ## Read Data
@@ -68,7 +67,7 @@ file should be named Smith_J_1.Rmd.
 fmdb <- as.tibble(read_csv(file = "C:\\Users\\Stephen\\Documents\\Northeastern\\DA 5020 - Collect Store Retrieve Data\\Homework\\HWK4\\farmers_market.csv"))
 ```
 ## Warm-up
-This dataset stores city and state in different columns, what if you want to print out city and state in the format “City, State”?
+This dataset stores city and state in different columns, what if you want to print out city and state in the format "City, State"?
 ```{r 'City,State'}
 library(stringi)
 #From Q2, Clean city column to remove state and county, makes more sense before #creating this column
@@ -76,7 +75,7 @@ fmdb$city <- gsub("([A-Za-z]+),.*","\\1",perl=T,fmdb$city)
 fmdb <- unite(fmdb,col ='City,State',c(`city`,`State`),sep=",",remove = F)
 ```
 ## Q1
-(20 points) Cleanup the Facebook and Twitter column to let them contain only the facebook username or twitter handle name. I.e., replace “https://www.facebook.com/pages/Cameron-Park-Farmers-Market/97634216535?ref=hl” with “Cameron-Park-Farmers-Market”, “https://twitter.com/FarmMarket125th” with “FarmMarket125th”, and “@21acres” with “21acres”.
+(20 points) Cleanup the Facebook and Twitter column to let them contain only the facebook username or twitter handle name. I.e., replace "https://www.facebook.com/pages/Cameron-Park-Farmers-Market/97634216535?ref=hl" with "Cameron-Park-Farmers-Market", "https://twitter.com/FarmMarket125th" with "FarmMarket125th", and "@21acres" with "21acres".
 ```{r "Q1 Facebook"}
 #Remove .com .*(?<=.com/)([1-9A-Z.])
 (rgx <- as.tibble(gsub("(?:.*(?<=.com\\/))([1-9A-Za-z-.]+\\/?)(?:(?=\\/).*)?","\\1",fmdb$Facebook,perl = T)))
@@ -96,7 +95,7 @@ fmdb$`FB_Short` <- rgx
 fmdb$`TW_Short` <- rgx
 ```
 ## Q2
-(20 points) Clean up the city and street column. Remove state and county names from the city column and consolidate address spellings to be more consistent (e.g. “St.”, “ST.”, “Street” all become “St”; “and” changes to “&”, etc. . . )
+(20 points) Clean up the city and street column. Remove state and county names from the city column and consolidate address spellings to be more consistent (e.g. "St.", "ST.", "Street" all become "St"; "and" changes to "&", etc. . . )
 ```{r Q2}
 
 #Clear everything in city col after ","
@@ -111,7 +110,7 @@ fmdb$street <- gsub("\\b((T?[Hh]ighway))","Hwy",perl=T,fmdb$street)
 fmdb$street <- gsub("\\b([Rr]oad)","Rd",perl=T,fmdb$street)
 ```
 ## Q3
-(20 points) Create a new data frame (tibble) that explains the online presence of each state’s farmers market. I.e., how many percentages of them have a facebook account? A twitter account? Or either of the accounts? (Hint: use the is.na() function)
+(20 points) Create a new data frame (tibble) that explains the online presence of each state's farmers market. I.e., how many percentages of them have a facebook account? A twitter account? Or either of the accounts? (Hint: use the is.na() function)
 ```{r 'Q3'}
 (OPStats <- fmdb %>% 
   group_by(State)%>%
@@ -152,5 +151,58 @@ ggplot(data = fm_by_loc,mapping=aes(x=reorder(loc, Number),y=Number))+
   geom_text(aes(label=paste0(pct,"%")),color="blue", stat="identity",hjust=-0.1, size=4)+
   theme(plot.title = element_text(hjust = .5),plot.subtitle = element_text(hjust = .5))
 ```
-5. 
+## 5. 
+(20 points) Write code to sanity check the kyfprojects data. For example, does Program Abbreviation always match Program Name for all the rows? (Try thinking of your own rules, too.)
+```{r 'Read Know Your Farmers, Know Your Food Data'}
+library(readxl)
+kyfdb <- as.tibble(read_xls("C:\\Users\\Stephen\\Documents\\Northeastern\\DA 5020 - Collect Store Retrieve Data\\Homework\\HWK4\\kyfprojects.xls"))
+```
 
+Determine Abbreviations and see if they match
+```{r 'What are Abbrvs'}
+#What are the program abbreviations
+(abbrvs <- unique(kyfdb$`Program Abbreviation`))
+(pn <- unique(kyfdb$`Program Name`))
+```
+
+It looks like "Hunger-Free Communities Grants" & "Hunger-Free Communities" are under the same abbreviation "HFC". "Federal-State Marketing Improvement Program" is hyphenated in one instance and not the other.
+```{r ' Fix Program Names'}
+#Fix the Program names
+kyfdb$`Program Name` <- fct_recode(kyfdb$`Program Name`,"Hunger-Free Communities Grants"="Hunger-Free Communities",
+"Federal-State Marketing Improvement Program" =                            "Federal State Marketing Improvement Program")
+#Use Fns above to ensure it worked
+(abbrvs <- unique(kyfdb$`Program Abbreviation`))
+(pn <- unique(kyfdb$`Program Name`))
+#looks like it did
+```
+
+```{r}
+#check the #s of each
+kyfdb %>%
+  count(`Program Abbreviation`)%>%
+  arrange(desc(n))
+kyfdb %>%
+  count(`Program Name`)%>%
+  arrange(desc(n))
+#Looks like everything adds up
+```
+
+```{r}
+sum(grep("[Vv]egani?c?",kyfdb$`Project Title`,value=F,perl=T)+
+grep("[Vv]egani?c?",kyfdb$Description,value=F,perl=T))
+sum(grep("[Pp]lant.based",kyfdb$`Project Title`,value=F,perl=T)+grep("[Pp]lant.based",kyfdb$`Description`,value=F,perl=T))
+sum(length(grep("[Ll]ivestock",kyfdb$`Project Title`,value=F,perl=T))+
+length(grep("[Ll]ivestock",kyfdb$Description,value=F,perl=T)))
+#:-(
+```
+
+```{r 'Bees'}
+sum(length(grep("[Pp]ollinators?",kyfdb$`Project Title`,value=F,perl=T))+
+length(grep("[Pp]ollinators?",kyfdb$Description,value=F,perl=T)))
+```
+<pre>
+        /_/_      .'''.
+     =O(_)))) ...'     `.
+        \_\              `.    .'''
+                           `..'
+</pre>
