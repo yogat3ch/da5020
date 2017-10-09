@@ -32,3 +32,13 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 .Rproj.user
+
+HWK5/HWK5_PDF_cache/
+
+HWK5/HWK5_files/
+
+HWK5/HWK5_cache/
+
+HWK5/HWK5_PDF_files/
+
+HWK5/rsconnect/
