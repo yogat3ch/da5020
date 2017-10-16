@@ -1,0 +1,251 @@
+---
+title: "Holsenbeck_S_6"
+author: "Stephen Synchronicity"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+always_allow_html: yes
+output: 
+  html_document: 
+    css: C:\Users\Stephen\Documents\R\win-library\3.4\rmarkdown\rmarkdown\templates\neu_hwk\resources\styles.css
+    highlight: zenburn
+    keep_md: yes
+    theme: readable
+    toc_float: true
+    toc: yes
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE,warning=FALSE,cache=TRUE, fig.align='center', fig.height=3.5, fig.width=5, tidy=TRUE, tidy.opts=list(width.cutoff=80))
+rmarkdown::html_dependency_jquery()
+rmarkdown::html_dependency_bootstrap("readable")
+rmarkdown::html_dependency_jqueryui()
+set.seed(1)
+```
+```{r Libraries, echo=FALSE, results='hide'}
+library("tidyverse")
+library("htmltools")
+library("dplyr")
+library("DT")
+```
+```{r 'Load Data'}
+this.dir <- dirname('Holsenbeck_S_6.Rmd')
+setwd(this.dir)
+dfEdu <- read_csv('FipsEducationsDA5020v2.csv')
+dfUne <- read_csv('FipsUnemploymentDA5020.csv')
+```
+
+
+<button data-toggle="collapse" data-target="#demo" class="btn">Homework Outline</button>
+<div id="demo" class="collapse">
+This week's assignment is about tidying up the structure of data collected by the US census. Load the Unemployment and Educational data files into R studio. One file contains yearly unemployment rates from 1970 to 2015, for counties in the US. The other file contains aggregated data percentages on the highest level of education achieved for each census member. The levels of education are: "less than a high school diploma", "high school diploma awarded", "attended some college", "college graduate and beyond". The census tracks the information at the county level and uses a fips number to represent a specific county within a U.S. state. The fips number is a 5 digit number where the first two digits of the fips number represents a U.S. state, while the last three digits represent a specific county within that state. 
+</div>
+ 
+
+
+# Homework 6
+
+## 1.  
+(20 points) Download the unemployment and education data files from blackboard and save the files to your working directory folder. Load both the unemployment data and the education data into R. Review the education data. Identify where variable names are actually values for a specific variable. Identify when multiple rows are data for the same entity. Identify when specific columns contain more than one atomic value. Tidy up the education data using spread, gather and separate. 
+```{r '1 - Separate'}
+#Separate state & county
+dfEduStates <- dfEdu %>% filter(description=="NULL")
+dfEdu <- dfEdu %>% filter(description!="NULL")
+dfEdu <- dfEdu %>% separate(county_state,c("ST","County"),extra="merge")
+```
+```{r '1 - Recode Description'}
+library("forcats")
+#Recode Factors in Education & Description
+class(dfEdu$description)
+unique(dfEdu$description)
+levels(dfEdu$description)
+#Recode Description
+dfEdu$description <- fct_recode(dfEdu$description, "metro, 1m+" = "Counties in metro areas of 1 million population or more",
+ "metro, 250k-1m" = "Counties in metro areas of 250,000 to 1 million population",
+ "metro, <250k" = "Counties in metro areas of fewer than 250,000 population",
+ "urbanmetro, 20k+" = "Urban population of 20,000 or more, adjacent to a metro area",
+ "urban, 20k+" = "Urban population of 20,000 or more, not adjacent to a metro area",
+ "urbanmetro, 2.5-19.999k" = "Urban population of 2,500 to 19,999, adjacent to a metro area",
+"urban, 2.5-19.999k" = "Urban population of 2,500 to 19,999, not adjacent to a metro area",
+"ruralmetro, <2.5k" = "Completely rural or less than 2,500 urban population, adjacent to a metro area",
+"rural, <2.5k" = "Completely rural or less than 2,500 urban population, not adjacent to a metro area")
+#order desc factor levels
+levels(dfEdu$description) <- c("metro, 1m+","metro, 250k-1m","metro, <250k","urbanmetro, 20k+","urban, 20k+","urbanmetro, 2.5-19.999k","urban, 2.5-19.999k","ruralmetro, <2.5k","rural, <2.5k")            
+```
+```{r '1 - Recode Edu Level'}
+class(dfEdu$percent_measure)
+unique(dfEdu$percent_measure)
+dfEdu$percent_measure <- fct_recode(dfEdu$percent_measure,
+ "B" = "percent_four_plus_years_college",
+ "<B" = "percent_has_some_college",
+ "HS" = "percent_hs_diploma",
+ "<HS" = "percent_less than_hs_diploma")
+levels(dfEdu$percent_measure)
+
+```
+```{r '1 - Spread & rename cols'}
+#Rename Cols
+colnames(dfEdu)[3] <- "EduLvl"
+colnames(dfEdu)[7] <- "RUCC"
+colnames(dfUne)[3] <- "p.Une"
+#Spread EduLvl
+dfEdu <- dfEdu %>% spread(EduLvl,percent)
+```
+
+## 2.  
+(15 points) Break apart the education data into three distinct tibbles. One tibble named education contains the education data, another tibble named fips, contains the fips number definition, and the third tibble named rural_urban_code contains the textual description of the 9 different urban to rural data descriptions. These three tibbles must be linked together to represent the relationships between the tibbles. For example, the fips table will contain 3,192 rows, where each row represents the definition of a fips number (County, State). Each row in the education table will contain the educational attainment of a spcific county. It also will contain a fips number since this data is specific to a county within a state. 
+
+```{r '2'}
+Edu <- as.tibble(unique(dfEdu[,c(1:2,7:10)]))
+RUCC <- as.tibble(unique(dfEdu[,c(5:6)]))
+fips <- as.tibble(unique(dfEdu[,c(1,3:4)]))
+```
+
+
+## 3.  
+(5 points) Answer the following questions about your tibbles: The fips column in the education table - is it a foreign or a primary key for the education tibble?  What is the primary key for your education tibble? The rural_urban code tibble should only contain 9 rows. What is its primary key?
+<div class="a">A) The fips column in the education table is a foreign key that relates the education statistics to the fips primary key in the fips table that identifies the county associated with the fips number (the table is 3142 rows with the 50 States rows removed).
+<br>
+The primary key for the education tibble is the fips number and the year.<br>
+The RUCC tibble primary key is the RUCC number .  
+</div>
+
+## 4.  
+(40 points) Write expressions to answer the following queries: 
+
+### 4.0 
+ In the year 1970, what is the percent of the population not attaining a high school diploma for the Nantucket county in Massachusetts? What about the year 2015?
+ <div class="a">A) In 1970: 33.7, in 2015: 5.2</div>
+ 
+```{r '4.0'}
+fips %>% filter(County=="Nantucket") #Find the fips
+Edu %>% filter(fips=="25019" & year %in% c("1970","2015")) #Show the values
+
+```
+
+### 4.1 
+ What is the average percentage not receiving a high school diploma for the counties in Alabama for the year 2015?
+
+<div class="a">A) ~19.82</div>
+```{r '4.1'}
+AL <- fips %>% filter(ST=="AL")
+AL.edu <- left_join(AL,Edu,by="fips")
+(AL.edu.2015 <- AL.edu %>% filter(year=="2015") %>%
+    group_by(year) %>% 
+    summarise('m<HS' = mean(`<HS`,na.rm=T)))
+```
+
+### 4.2 
+ What is the average percentage of college graduates for the counties in the state of Massachusetts for the year 2015?
+<div class="a">A) ~9.32</div>
+```{r '4.2'}
+MA <- fips %>% filter(ST=="MA")
+MA.edu <- left_join(MA,Edu,by="fips")
+(MA.edu.2015 <- MA.edu %>% filter(year=="2015") %>%
+    group_by(year) %>% 
+    summarise('m<HS' = mean(`<HS`,na.rm=T)))
+```
+
+
+### 4.3 
+ Determine the average percentage of population not attaining a high school diploma for the counties in Alabama for each year within the dataset. The result should return the calendar year and the average percentage not attaining a high school diploma for that year.
+ 
+```{r '4.3'}
+(AL.edu.yr <- AL.edu %>% group_by(year) %>%
+    summarise('m<HS' = mean(`<HS`,na.rm=T)))
+```
+
+### 4.4 
+ What is the most common rural_urban code for the U.S. counties?
+<div class="a">A) RUCC:6 Description: "urbanmetro, 2.5-19.999k"</div>
+```{r}
+dfEdu %>% group_by(RUCC) %>% count(RUCC) 
+```
+
+### 4.5 
+ Which counties have not been coded with a rural urban code? Return a result that contains two fields: County, State for the counties that has not been assigned a rural urban code. Do not return duplicate values in the result. Order the result alphabetically by state.
+<div class="a">A) There actually aren't any counties without RUCC, these are the state-wide summary statstics for all states and the District of Columbia that the census included but did not make apparent.</div> 
+```{r}
+unique(dfEduStates %>% select(county_state) %>% separate(county_state,c("ST","County"),extra="merge"))
+```
+
+### 4.6 
+ What is the minimal percentage of college graduates for the counties in the state of Mississippi for the year 2010?
+<div class="a">A)Data isn't available for the year 2010 in the education data set. Are we looking at the same data set? I'm going to assume for the purposes of answering the question that by 2010, 2000 is meant. In the year 2000, the minimal college graduates for MS was 7.1% in Issaquena County</div>
+ 
+```{r '4.6'}
+MS.edu <- inner_join(Edu,fips %>% filter(ST == 'MS'), by="fips") %>% filter(year=="2000") %>% 
+arrange(B)
+min(MS.edu$B)
+```
+
+### 4.7 
+ Which state contains the most number of counties that have not been provided a rural urban code?
+ 
+<div class="a">A) This question doesn't make sense given the data. The only places where the RUCC are not provided are for the entire State summary entries on a per year basis.</div>
+
+### 4.8 
+ In the year 2015, which fip counties, U.S. states contain a higher percentage of unemployed citizens than the percentage of college graduates? List the county name and the state name. Order the result alphabetically by state.
+ 
+<div class="a">A) </div>
+```{r '4.8'}
+(Une.2015 <- inner_join(dfEdu %>% filter(year==2015),dfUne %>% filter(year==2015), by="fips") %>% filter(p.Une>B) %>% select(ST,County,B,p.Une,-year.y) %>% arrange(ST))
+```
+
+
+### 4.9 
+ Return the county, U.S. state and year that contains the highest percentage of college graduates in this dataset?
+<div class="a">A) I'm not sure if you mean the dataset from the previous question, or the overall dataset, so I'll do both. Colusa, CA in dataset from previous question, Falls Church,VA in 2015 in the overall dataset with 78.8% college grads.</div>
+ 
+```{r '4.9'}
+Une.2015 %>% mutate(r.B = dense_rank(B)) %>% filter(r.B==max(r.B))
+(Top.B <- inner_join(dfEdu,dfUne, by=c("fips","year")) %>% select(ST,County,B,p.Une, everything()) %>% mutate(r.B=dense_rank(B)) %>% filter(r.B==max(r.B)))
+```
+
+
+## 5.  
+(20 points) _Open question_: explore the unemployment rate and the percent not attaining a high school diploma over the time period in common for the two datasets. What can you discover? Create a plot that supports your discovery.
+
+<div class="a">A) It appears that there is correlation between percentages not attaining a HS diploma and the unemployment rate, but the relatively low $R^2$ coeffecient indicates that the correlation is a weak one. The second graph shows that RUCC 6&8 might have a statistically significant higher percentage of folks not finishing high school. The t-tests below indicate that this is indeed the case. </div>
+
+```{r '5 - create dataset'}
+p.Edu <- inner_join(dfEdu,dfUne) %>% select(ST,County,p.Une,`<HS`,HS,`<B`,B, everything())
+```
+```{r '5 - graph'}
+#Function for linear reqression equation
+lm_eqn = function(m) {
+
+  l <- list(a = format(coef(m)[1], digits = 2),
+      b = format(abs(coef(m)[2]), digits = 2),
+      r2 = format(summary(m)$r.squared, digits = 3));
+
+  if (coef(m)[2] >= 0)  {
+    eq <- substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2,l)
+  } else {
+    eq <- substitute(italic(y) == a - b %.% italic(x)*","~~italic(r)^2~"="~r2,l)    
+  }
+
+  as.character(as.expression(eq));                 
+}
+
+#Scatter plots with linear line of best fit and linear regression equation
+ggplot(data = p.Edu,mapping=aes(x=`<HS`,y=`p.Une`))+
+geom_point(mapping=aes(color=p.Une))+
+geom_smooth(method="lm")+
+geom_text(aes(x = 15, y = 23, label = lm_eqn(lm(`p.Une` ~ `<HS`, p.Edu))), parse = TRUE)
+  
+#Scatter plots by RUCC code with Boxplots
+ggplot(data = p.Edu,mapping=aes(x=RUCC,y=`<HS`))+
+geom_point(mapping=aes(color=p.Une))+
+geom_boxplot(alpha=.01)+
+scale_colour_gradientn(colours = terrain.colors(10))
+
+```
+
+```{r '5- ttest'}
+#T-tests for the two RUCC codes that appear to have higher averages
+rucc8 <- p.Edu %>% filter(RUCC=="8")
+rucc6 <- p.Edu %>% filter(RUCC=="6")
+t.test(x=p.Edu$`<HS`,rucc8$`<HS`)
+t.test(x=p.Edu$`<HS`,rucc6$`<HS`)
+```
+
+
+
