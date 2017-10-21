@@ -1,0 +1,256 @@
+---
+title: "Holsenbeck_S_7A"
+author: "Stephen Synchronicity"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+always_allow_html: yes
+output: 
+  html_document: 
+    css: C:\Users\Stephen\Documents\R\win-library\3.4\rmarkdown\rmarkdown\templates\neu_hwk\resources\styles.css
+    highlight: zenburn
+    keep_md: yes
+    theme: readable
+    toc_float: true
+    toc: yes
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE,warning=FALSE,cache=TRUE, fig.align='center', fig.height=3.5, fig.width=5, tidy=TRUE, tidy.opts=list(width.cutoff=80))
+rmarkdown::html_dependency_jquery()
+rmarkdown::html_dependency_bootstrap("readable")
+rmarkdown::html_dependency_jqueryui()
+set.seed(1)
+```
+```{r Libraries, echo=FALSE, results='hide'}
+library("tidyverse")
+library("dplyr")
+library("htmltools")
+library("DT")
+library("lubridate")
+library("stringr")
+```
+
+
+<button data-toggle="collapse" data-target="#demo" class="btn">Homework Outline</button>
+<div id="demo" class="collapse">
+The objective of this assignment is to understand the structure of HTML pages and URL parameters. You will scrape data from a website we choose and write a report comparing different web scraping toolkits.
+(50 Points) Pick at least 2 web scraping toolkits (either automated tools like Import.io or R packages such as rvest) and try to use them to extract data from the Yelp website. In particular, create a search in Yelp to find good burger restaurants in the Boston area. You must try out at least two toolkits, but you will use only one to actually extract and save the full data.
+
+You are expected to:
+Start at the website https://www.yelp.com/boston, create a search for Burgers.
+Use the search filters to limit Boston neighborhoods to Allston, Brighton, Back Bay, Beacon Hill, Downtown Area, Fenway, South End, and West End.
+Notice the URL format in your browser’s location bar. Save the URL somewhere safe. You want to extract the first three pages of the search results. For each page notice the change in the URL and save the updated URLs, too. You will need to discuss these URLs later.
+Extract information about restaurants appeared in the search results list, including but not limited to their name, address, service categories, review count, and review stars.
+Do not scrape “Ad” items.
+ 
+(20 points) Import the data you extracted into a data frame in R. Your data frame should have exactly 30 rows, and each row represents a burger restaurant in Boston.
+(30 Points) Write a report that compares the tools with a focus on cost, ease of use, features, and your recommendation. Discuss your experience with the tools and why you decided to use the one you picked in the end. Use screenshots of toolkits and your scraping process to support your statements.  Also include a screenshot or an excerpt of your data in the report.
+(10 points) Within your report describe what you have derived about the URL for yelp pages. What are the differences between the three URLs? What are the parameters that determined your search query (Boston burger restaurants in 8 selected neighborhoods)? What is(are) the parameter(s) used for pagination? Without opening Yelp.com in the browser, what is your guess of the URL for the 7th page of Chinese restaurants in New York?
+Deliverables
+Complete the tasks and create a report in PDF format. Submit your report to blackboard. Within your report, include pictures, screenshots, data file extracts, charts, and anything else that shows your analysis of the toolkits.
+You can write the PDF in any tool you like, but it is encouraged to write it with R markdown. You can learn how to insert images in R markdown documents [here](http://rmarkdown.rstudio.com/authoring_basics.html) and [here](https://poldham.github.io/minute_website/images.html).
+</div>
+
+# Homework 7
+
+## 1
+<div class="q">(50 Points) Pick at least 2 web scraping toolkits (either automated tools like Import.io or R packages such as rvest) and try to use them to extract data from the Yelp website. In particular, create a search in Yelp to find good burger restaurants in the Boston area. You must try out at least two toolkits, but you will use only one to actually extract and save the full data.</div>
+
+```{r '1 - Store Search Results'}
+url <- c('https://www.yelp.com/search?find_desc=vegan&start=0&cflt=vegan,vegetarian&l=p:MA:Boston::%5BAllston/Brighton,Arlington_Center,Arlington_Heights,Back_Bay,Beacon_Hill,Brookline_Village,Central_Square,Chinatown,Downtown,East_Arlington,East_Cambridge,Fenway,Jamaica_Plain,Kendall_Square/MIT,Mission_Hill,North_Cambridge,South_End,West_End%5D', 'https://www.yelp.com/search?find_desc=vegan&start=10&cflt=vegan,vegetarian&l=p:MA:Boston::%5BAllston/Brighton,Arlington_Center,Arlington_Heights,Back_Bay,Beacon_Hill,Brookline_Village,Central_Square,Chinatown,Downtown,East_Arlington,East_Cambridge,Fenway,Jamaica_Plain,Kendall_Square/MIT,Mission_Hill,North_Cambridge,South_End,West_End%5D', 'https://www.yelp.com/search?find_desc=vegan&start=20&cflt=vegan,vegetarian&l=p:MA:Boston::%5BAllston/Brighton,Arlington_Center,Arlington_Heights,Back_Bay,Beacon_Hill,Brookline_Village,Central_Square,Chinatown,Downtown,East_Arlington,East_Cambridge,Fenway,Jamaica_Plain,Kendall_Square/MIT,Mission_Hill,North_Cambridge,South_End,West_End%5D')
+urlTitles <- c('Page 1', 'Page 2', 'Page 3')
+Results <- data.frame(Title=urlTitles, url=url)
+Results <- transform(Results, url = paste('<a href = ', shQuote(url), '>', urlTitles, '</a>')) 
+#Results   <- gvisTable(Results, options = list(allowHTML = TRUE))
+```
+```{r '1 - Import the Data from GrepSR'}
+#Import GrepSR CSV
+this.dir <- dirname('Holsenbeck_S_7.Rmd')
+setwd(this.dir)
+getwd() #ensure the wd is the same directory as the file
+yelp <- read_csv(file="20171020Vegan.Vege.csv")
+yelp <- yelp %>% filter(!is.na(Name)) #remove ads
+library(rvest)
+get.Rtgs <- function(url){
+  Ratings <- c(numeric(0))
+  Output <- data.frame(Name = character(0), Rating = numeric(0))
+  Name <- c(character(0))
+  for(i in 1:length(url)){
+  wp <- read_html(url[i])
+  rtg <- str_extract(html_nodes(wp,css=".rating-large"),"\\d.\\d")
+  rtg <- rtg[-1]
+  nm <- html_text(html_nodes(wp, css=".biz-name span"))
+  nm <- nm[-1]
+  i+1
+  Ratings <- append(Ratings,rtg,after=length(Ratings))
+  Name <- append(Name,nm,after=length(Name))
+  }
+  Output <- as.data.frame(cbind(Name,Ratings))
+return(Output)
+}
+Ratings <- get.Rtgs(url)
+yelp <- unique(inner_join(yelp,Ratings,by="Name"))
+```
+
+```{r '1 - Import the data from Import.io'}
+yelp.io <- read_csv(file="yelp.com2017-10-21Import.io.csv")
+yelp.io <- unique(inner_join(yelp.io,Ratings,by="Name"))
+yelp.io <- yelp.io %>% filter(Result!="Ad") %>% select(Result,Neighborhood,Name,Address,`City, ST Zip`,Phone,Ratings,`Review Count`,Price,Services,everything())
+```
+
+## 2
+<div class="q">(20 points) Import the data you extracted into a data frame in R. Your data frame should have exactly 30 rows, and each row represents a burger restaurant in Boston.</div>
+<div class="a">A)See Above, yelp is the data frame using GrepSR & Rvest, and yelp.io is the data frame using Import.io and Rvest.</div>
+
+## 3
+<div class="q">(30 Points) Write a report that compares the tools with a focus on cost, ease of use, features, and your recommendation. Discuss your experience with the tools and why you decided to use the one you picked in the end. Use screenshots of toolkits and your scraping process to support your statements.  Also include a screenshot or an excerpt of your data in the report.</div>
+<div class="a">
+<h4>GrepSR</h4>
+Grep.SR is a web scraping Chrome browser plugin with an intuitive and easy to use in-browser UI that loads by clicking the extension icon.
+<br>
+<strong>Workflow</strong>
+<br>
+The workflow works as follows:
+<ol>
+<li> Load the grepsr interface </li>
+<li> Tag the elements, give the column header a name, and select what type of data to extract (href,text,class etc). Deselect any excess unwanted items.</li>
+<li> Follow the prompts regarding link depth, pagination, logins etc</li>
+<li> You'll be redirected to your dashboard where you can download the files once the scrape is complete</li>
+</ol>
+<table>
+<tbody>
+<tr>
+<th>Tagging</th>
+<th>Data Preview</th>
+<th>Report Dashboard</th>
+</tr>
+<tr>
+<td><a href="http://www.yogat3ch.net/yogat3ch/wp-content/uploads/2017/10/GrepsrTagging.png">![Tagging](http://www.yogat3ch.net/yogat3ch/wp-content/uploads/2017/10/GrepsrTagging-300x158.png "Tagging")</a></td>
+<td><a href="http://www.yogat3ch.net/yogat3ch/wp-content/uploads/2017/10/GrepsrDataPreview.png">![Data Preview](http://www.yogat3ch.net/yogat3ch/wp-content/uploads/2017/10/GrepsrDataPreview-300x105.png "Tagging")</a></td>
+<td><a href="http://www.yogat3ch.net/yogat3ch/wp-content/uploads/2017/10/GrepsrReportDashboard.png">![Report Dashboard](http://www.yogat3ch.net/yogat3ch/wp-content/uploads/2017/10/GrepsrReportDashboard-300x135.png "Tagging")</a></td>
+</tr>
+</tbody>
+</table>
+<strong>Cost</strong>
+<br>
+The <a href="https://app.grep.sr/app/project/report/30745/22720/tab/configuration" target="_blank">pricing for GrepSR</a> includes a Lite, always free plan and the gradient between levels of upgrades is reasonable, maxing out at $250/mo for a "Premium" Plan. 
+<br>
+<strong>Ease of use</strong>
+<br>
+Grepsr is very easy to use, requires no knowledge of CSS or Xpath, and provides clean data sets with (usually) everything you specified.
+<br>
+<strong>Features</strong>
+<br>
+<ol>
+<li> Guided tour
+</li>
+<li> Very intuitive
+</li>
+<li> Sub-Link Parsing
+</li>
+<li> Scrape pages behind a login
+</li>
+<li> Support for pagination, infinite scroll, load more links
+</li>
+<li> Choose what attribute or content to scrape from the element
+</li>
+<li> Receive notifications when reports are complete
+</li>
+<li> Schedule Reports
+</li>
+<li> API
+</li>
+<li> CSV, JSON output
+</li>
+<li> Various data delivery methods including:
+ </li>
+<ul>
+<li>Email
+ </li>
+<li>Dropbox
+ </li>
+<li>FTP
+ </li>
+<li>Web Hooks
+ </li>
+<li>Google Drive
+ </li>
+<li>Amazon S3
+ </li>
+<li>Box
+ </li>
+<li>File feed
+</li>
+</ul>
+<li> Easily edit and rerun previous extraction setups
+</li>
+</ol>
+<hr>
+<h4>Import.IO</h4>
+<strong>Workflow</strong>
+<br>
+The workflow for import.io is as follows:
+<ol>
+<li> Create a free 7-day trial account </li>
+<li> Specify the URL you would like to parse</li>
+<li> Import.io automatically starts parsing/scraping the page grabbing all of the elements that it thinks you might want.</li>
+<li> A buttons pops up shortly that allows you go straight to the editing interface to specify add/delete specific data</li>
+<li> You can delete columns or add columns of data, the columns are auto labelled fairly accurately.</li>
+<li> Most data is already going to be account for, you might want to specify column headers and remove some of the data you don't need.</li>
+<li> Preview the data with the "Data" tab</li>
+<li> You can use the "Advanced" menu to provide an additional link for another page to train the extractor to parse paginated URLs</li>
+</ol>
+<table>
+<tbody>
+<tr>
+<th>Tagging</th>
+<th>Data Preview</th>
+<th>Report Dashboard</th>
+</tr>
+<tr>
+<td><a href="http://www.yogat3ch.net/yogat3ch/wp-content/uploads/2017/10/Import.ioTagging.png">![Tagging](http://www.yogat3ch.net/yogat3ch/wp-content/uploads/2017/10/Import.ioTagging-300x144.png "Tagging")</a></td>
+<td><a href="http://www.yogat3ch.net/yogat3ch/wp-content/uploads/2017/10/Import.ioDataPreview.png">![Data Preview](http://www.yogat3ch.net/yogat3ch/wp-content/uploads/2017/10/Import.ioDataPreview-300x122.png "Tagging")</a></td>
+<td><a href="http://www.yogat3ch.net/yogat3ch/wp-content/uploads/2017/10/Import.ioReportDashboard.png">![Report Dashboard](http://www.yogat3ch.net/yogat3ch/wp-content/uploads/2017/10/Import.ioReportDashboard-300x130.png "Tagging")</a></td>
+</tr>
+</tbody>
+</table>
+<strong>Cost</strong>
+<br>
+The <a href="https://www.import.io/upgrade/" target="_blank">pricing for Import.io</a> is fairly absurd with a basic package starting at $299/mo up to $9999/mo for a "Premium" package. There are no free plans. <br>
+<strong>Ease of use</strong>
+<br>
+Import.io is also very easy to use, and can basically identify everything you could possible want on a page with it's automated first pass. I personally wish that it didn't parse everything automatically because it took more time deleting columns of additional information than tagging columns in grepsr! The UI is very intuitive and easy to use overall 
+<br>  
+<strong>Features</strong>
+<br>
+<ol>
+<li> Guided tour
+</li>
+<li> Very intuitive </li>
+<li><span style="text-decoration: line-through;">Sub-Link Parsing</span> <em>I did not see ths option but it might be available</em></li>
+<li> Scrape pages behind a login </li><em>Yes, but not with the trial</em> <li> Support for pagination </li><em>Unsure about infinite scroll</em> <li> Choose what attribute or content to scrape from the element
+</li>
+<li> Receive notifications when reports are complete
+</li>
+<li> Schedule Reports
+</li>
+<li> API
+</li>
+<li> CSV, JSON, XLS output
+</li>
+<li> Various data delivery methods including:</li>
+<ul>
+<li>Google Sheets</li>
+<li>JSON</li>
+<li>CSV</li>
+<li>RSS</li>
+</ul>
+</ol><br>
+<strong>Recommendation</strong>
+<br>
+Both tools have comparable functionality, features, and ease of use, yet the pricing for import.io is a dealbreaker. Grepsr is recommended for it's more accessible pricing scale.
+</div>
+
+
+
+
+## 4
+<div class="q">(10 points) Within your report describe what you have derived about the URL for yelp pages. What are the differences between the three URLs? What are the parameters that determined your search query (Boston burger restaurants in 8 selected neighborhoods)? What is(are) the parameter(s) used for pagination? Without opening Yelp.com in the browser, what is your guess of the URL for the 7th page of Chinese restaurants in New York?</div>
