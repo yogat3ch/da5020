@@ -24,7 +24,6 @@ library("tidyverse")
 library("dplyr")
 library("htmltools")
 library("DT")
-library("lubridate")
 library("stringr")
 ```
 
@@ -54,6 +53,7 @@ You can write the PDF in any tool you like, but it is encouraged to write it wit
 ## 1
 <div class="q">(50 Points) Pick at least 2 web scraping toolkits (either automated tools like Import.io or R packages such as rvest) and try to use them to extract data from the Yelp website. In particular, create a search in Yelp to find good burger restaurants in the Boston area. You must try out at least two toolkits, but you will use only one to actually extract and save the full data.</div>
 
+**1 - Store Search Results**
 ```{r '1 - Store Search Results'}
 url <- c('https://www.yelp.com/search?find_desc=vegan&start=0&cflt=vegan,vegetarian&l=p:MA:Boston::%5BAllston/Brighton,Arlington_Center,Arlington_Heights,Back_Bay,Beacon_Hill,Brookline_Village,Central_Square,Chinatown,Downtown,East_Arlington,East_Cambridge,Fenway,Jamaica_Plain,Kendall_Square/MIT,Mission_Hill,North_Cambridge,South_End,West_End%5D', 'https://www.yelp.com/search?find_desc=vegan&start=10&cflt=vegan,vegetarian&l=p:MA:Boston::%5BAllston/Brighton,Arlington_Center,Arlington_Heights,Back_Bay,Beacon_Hill,Brookline_Village,Central_Square,Chinatown,Downtown,East_Arlington,East_Cambridge,Fenway,Jamaica_Plain,Kendall_Square/MIT,Mission_Hill,North_Cambridge,South_End,West_End%5D', 'https://www.yelp.com/search?find_desc=vegan&start=20&cflt=vegan,vegetarian&l=p:MA:Boston::%5BAllston/Brighton,Arlington_Center,Arlington_Heights,Back_Bay,Beacon_Hill,Brookline_Village,Central_Square,Chinatown,Downtown,East_Arlington,East_Cambridge,Fenway,Jamaica_Plain,Kendall_Square/MIT,Mission_Hill,North_Cambridge,South_End,West_End%5D')
 urlTitles <- c('Page 1', 'Page 2', 'Page 3')
@@ -61,6 +61,7 @@ Results <- data.frame(Title=urlTitles, url=url)
 Results <- transform(Results, url = paste('<a href = ', shQuote(url), '>', urlTitles, '</a>')) 
 #Results   <- gvisTable(Results, options = list(allowHTML = TRUE))
 ```
+**1 - Import the Data from GrepSR**
 ```{r '1 - Import the Data from GrepSR'}
 #Import GrepSR CSV
 this.dir <- dirname('Holsenbeck_S_7.Rmd')
@@ -90,6 +91,7 @@ Ratings <- get.Rtgs(url)
 yelp <- unique(inner_join(yelp,Ratings,by="Name"))
 ```
 
+**1 - Import the data from Import.io**
 ```{r '1 - Import the data from Import.io'}
 yelp.io <- read_csv(file="yelp.com2017-10-21Import.io.csv")
 yelp.io <- unique(inner_join(yelp.io,Ratings,by="Name"))
