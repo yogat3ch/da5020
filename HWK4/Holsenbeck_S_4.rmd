@@ -78,21 +78,19 @@ fmdb <- unite(fmdb,col ='City,State',c(`city`,`State`),sep=",",remove = F)
 (20 points) Cleanup the Facebook and Twitter column to let them contain only the facebook username or twitter handle name. I.e., replace "https://www.facebook.com/pages/Cameron-Park-Farmers-Market/97634216535?ref=hl" with "Cameron-Park-Farmers-Market", "https://twitter.com/FarmMarket125th" with "FarmMarket125th", and "@21acres" with "21acres".
 ```{r "Q1 Facebook"}
 #Remove .com .*(?<=.com/)([1-9A-Z.])
-(rgx <- as.tibble(gsub("(?:.*(?<=.com\\/))([1-9A-Za-z-.]+\\/?)(?:(?=\\/).*)?","\\1",fmdb$Facebook,perl = T)))
+fmdb$FBShort <- gsub("(?:.*(?<=.com\\/))([1-9A-Za-z-.]+\\/?)(?:(?=\\/).*)?","\\1",fmdb$Facebook,perl = T)
 #Remove Pages
-(rgx <- as.tibble(gsub("(?:.*(?<=pages\\/))([1-9A-Za-z-.]*)","\\1",rgx[[1]],perl = T)))
+fmdb$FBShort <- gsub("(?:.*(?<=pages\\/))([1-9A-Za-z-.]*)","\\1",fmdb$FBShort,perl = T)
 #Remove Questions Marks https://regex101.com/r/6349Pu/4
-(rgx <- as.tibble(gsub("([1-9A-Za-z-.]*)(?:(?=\\?).*)","\\1",rgx[[1]],perl = T)))
+fmdb$FBShort <- gsub("([1-9A-Za-z-.]*)(?:(?=\\?).*)","\\1",fmdb$FBShort,perl = T)
 #Remove Slash and beyond
-(rgx <- as.tibble(gsub("([1-9A-Za-z-.]*)(?:(?=\\/).*)","\\1",rgx[[1]],perl = T)))
-fmdb$`FB_Short` <- rgx
+fmdb$FBShort <- gsub("([1-9A-Za-z-.]*)(?:(?=\\/).*)","\\1",fmdb$FBShort,perl = T)
 ```
 ```{r 'Q1 Twitter'}
 #Remove .com
-(rgx <- as.tibble(gsub("(?:.*(?<=.com\\/))([1-9A-Za-z-.]+)(?:(?=\\/).*)?","\\1",fmdb$Twitter,perl = T)))
+fmdb$`TWShort` <- gsub("(?:.*(?<=.com\\/))([1-9A-Za-z-.]+)(?:(?=\\/).*)?","\\1",fmdb$Twitter,perl = T)
 #Remove @
-(rgx <- as.tibble(gsub("@([A-Za-z0-9]+)","\\1",rgx[[1]],perl = T)))
-fmdb$`TW_Short` <- rgx
+fmdb$`TWShort` <- gsub("@([A-Za-z0-9]+)","\\1",fmdb$`TWShort`,perl = T)
 ```
 ## Q2
 (20 points) Clean up the city and street column. Remove state and county names from the city column and consolidate address spellings to be more consistent (e.g. "St.", "ST.", "Street" all become "St"; "and" changes to "&", etc. . . )
@@ -108,6 +106,13 @@ fmdb$street <- gsub("\\b(([Aa][Nn][Dd]))","&",perl=T,fmdb$street)
 fmdb$street <- gsub("\\b(([Aa][Vv][Ee][Nn][Uu][Ee]))","Ave",perl=T,fmdb$street)
 fmdb$street <- gsub("\\b((T?[Hh]ighway))","Hwy",perl=T,fmdb$street)
 fmdb$street <- gsub("\\b([Rr]oad)","Rd",perl=T,fmdb$street)
+fmdb$ShortName <- gsub("(.*)(?:Farme?r?'?s?'? Market)",perl=T,"\\1FM",fmdb$MarketName)
+# names(fmdb) <- gsub("([A-Za-z]+)_([A-Za-z]+)","\\1\\2",names(fmdb))
+# names(fmdb) <- gsub("\\.","",names(fmdb))
+fmdb <- fmdb %>% select(everything(),-`City,State`)
+#names(fmdb)[60:62] <- c(as.character("FBshort"),as.character("TWShort"),"ShortName")
+write_csv(fmdb,path="C:\\Users\\Stephen\\Documents\\Northeastern\\DA 5020 - Collect Store Retrieve Data\\Homework\\HWK4\\fmdb.csv")
+
 ```
 ## Q3
 (20 points) Create a new data frame (tibble) that explains the online presence of each state's farmers market. I.e., how many percentages of them have a facebook account? A twitter account? Or either of the accounts? (Hint: use the is.na() function)
@@ -115,14 +120,18 @@ fmdb$street <- gsub("\\b([Rr]oad)","Rd",perl=T,fmdb$street)
 (OPStats <- fmdb %>% 
   group_by(State)%>%
 summarize(Facebook = sum(Facebook != "",na.rm=T)/n(),
-          Twitter = sum(Twitter != "",na.rm=T)/n()))
+          Twitter = sum(Twitter != "",na.rm=T)/n(),
+          Website = sum(Website != "",na.rm=T)/n()))
+mean(OPStats$Facebook)
+mean(OPStats$Twitter)
+mean(OPStats$Website)
 ```
 ## Q4
 (20 points) Some of the farmer market names are quite long. Can you make them shorter by using the forcats::fct_recode function? Create a plot that demonstrates the number of farmers markets per location type. The locations should be ordered in descending order where the top of the graph will have the one with the highest number of markets.
 ```{r 'Q4'}
 #fct_recode doesn't appear to help when there are so many diverse entries
 #Opting for regex reduction of Farmer's Market to FM
-fmdb$Short_Name <- gsub("(.*)(?:Farme?r?'?s?'? Market)",perl=T,"\\1FM",fmdb$MarketName)
+
 library(forcats)
 (fm_by_loc <- fmdb %>%
   group_by(Location) %>%
