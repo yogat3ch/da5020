@@ -1,0 +1,311 @@
+---
+title: "Holsenbeck_S_1"
+author: "Stephen Synchronicity"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+always_allow_html: yes
+output: 
+  html_document: 
+    css: C:\Users\Stephen\Documents\R\win-library\3.4\rmarkdown\rmarkdown\templates\neu_hwk\resources\styles.css
+    highlight: zenburn
+    keep_md: yes
+    theme: readable
+    toc_float: true
+    toc: yes
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE,warning=T,cache=TRUE, fig.align='center', fig.height=3.5, fig.width=5, tidy=TRUE, tidy.opts=list(width.cutoff=80))
+rmarkdown::html_dependency_jquery()
+rmarkdown::html_dependency_bootstrap("readable")
+rmarkdown::html_dependency_jqueryui()
+set.seed(1)
+```
+```{r Libraries, echo=FALSE, results='hide'}
+library("tidyverse")
+library("dplyr")
+library("magrittr")
+library("htmltools")
+library("DT")
+library("rvest")
+```
+
+
+<button data-toggle="collapse" data-target="#demo" class="btn">Homework Outline</button>
+<div id="demo" class="collapse">
+1. (20 points) Retrieve the contents of the first webpage for the yelp search as specified in Assignment 7 and write R statements to answer the following questions on the retrieved contents:
+
+- How many nodes are direct descendents of the HTML `<body>` element (the actual visible content of a web page)?
+- What are the nodes names of the direct descendents of the `<body>`?
+- How many of these direct descendents have an `id` attribute?
+- What is the css selector to select restaurants that are advertisements? (You may not see the ads if you are logged in on Yelp or have an ad blocker running.)
+
+Here's some code to help you get started:
+
+```{r}
+
+page <- read_html("https://www.yelp.com/search?find_desc=burgers&start=0&l=Boston,MA")
+
+# list the children of the <html> element (the whole page)
+html_children(page)
+
+# get the root of the actual html body
+root <- html_node(page, 'body')
+```
+
+(50 points) Modify following parameterized function `get_yelp_sr_one_page` to extract a list of businesses on Yelp, for a specific search keyword, a specific location and a specific page of results.
+
+
+Add a parameter to the `get_yelp_sr_one_page` function so that it can scrape other pages other than the first page. E.g.,
+`get_yelp_sr_one_page("burgers", page=2)` should return the results in the second page.
+
+The modified function should return a data frame that contains the following information:
+
+- restuarant name
+- url to the yelp page of the restaurant
+- price level
+- service categories
+- telphone number
+- restuarant's neighborhood name, street address, city, state, and zipcode, all in separate columns
+- average rating
+- number of reviews
+- URL to the restaurant's reviews list
+
+3. (20 points) Write a function that reads multiple pages of the search results of any search keyword and location from Yelp.
+
+Note that for some queries, Yelp may get a different number of results per page. You would need to either change the way you calculate the URL parameter, or use the `distinct(df)` function to remove duplicate rows.
+
+4. (10 points) Optimize your function in question 3, add a small wait time (0.5s for example) between each request, so that you don't get banned by Yelp for abusing their website (hint: use `Sys.sleep()`).
+</div>
+## 1 
+<div class="q">(20 points) Retrieve the contents of the first webpage for the yelp search as specified in Assignment 7 and write R statements to answer the following questions on the retrieved contents:
+
+
+
+
+Here's some code to help you get started:
+</div>
+```{r 'Load URLs'}
+url <- c('https://www.yelp.com/search?find_desc=vegan&start=0&cflt=vegan,vegetarian&l=p:MA:Boston::%5BAllston/Brighton,Arlington_Center,Arlington_Heights,Back_Bay,Beacon_Hill,Brookline_Village,Central_Square,Chinatown,Downtown,East_Arlington,East_Cambridge,Fenway,Jamaica_Plain,Kendall_Square/MIT,Mission_Hill,North_Cambridge,South_End,West_End%5D', 'https://www.yelp.com/search?find_desc=vegan&start=10&cflt=vegan,vegetarian&l=p:MA:Boston::%5BAllston/Brighton,Arlington_Center,Arlington_Heights,Back_Bay,Beacon_Hill,Brookline_Village,Central_Square,Chinatown,Downtown,East_Arlington,East_Cambridge,Fenway,Jamaica_Plain,Kendall_Square/MIT,Mission_Hill,North_Cambridge,South_End,West_End%5D', 'https://www.yelp.com/search?find_desc=vegan&start=20&cflt=vegan,vegetarian&l=p:MA:Boston::%5BAllston/Brighton,Arlington_Center,Arlington_Heights,Back_Bay,Beacon_Hill,Brookline_Village,Central_Square,Chinatown,Downtown,East_Arlington,East_Cambridge,Fenway,Jamaica_Plain,Kendall_Square/MIT,Mission_Hill,North_Cambridge,South_End,West_End%5D')
+```
+
+### a 
+<div class="q">How many nodes are direct descendents of the HTML `<body>` element (the actual visible content of a web page)?</div>
+
+```{r '1a'}
+library(rvest)
+# list the children of the <html> element (the whole page)
+html1 <- read_html(url[[1]])
+html_children(html1)
+# get the root of the actual html body
+dc <- html1 %>%  html_node('body') %>% 
+  html_children()
+```
+
+<div class="a">A)There are 29 direct children of the body tag.</div>
+
+### b
+<div class="q">What are the node names of the direct descendents of the `<body>`?</div>
+
+```{r '1b'}
+(nodeNames <- dc %>% html_tag())
+```
+
+### c
+<div class="q">How many of these direct descendents have an `id` attribute?</div>
+
+```{r '1c'}
+dc %>% html_attrs()
+```
+
+<div class="a">A)Three of the descendents have an 'id' attribute.</div>
+
+### d
+<div class="q">What is the css selector to select restaurants that are advertisements? (You may not see the ads if you are logged in on Yelp or have an ad blocker running.)</div>
+```{r}
+html1 %>% html_nodes(css=".yloca-tip")
+h %>% html_nodes(css=".yloca-info")
+h %>% html_nodes(css=".yloca-search-result")
+
+
+```
+
+<div class="a">A)If the "Ad" element is inspected, it is a span tag with a class of yloca-tip, however when this is used with html_nodes, it only returns one result, even though there are two ads per page. On the right had side of each ad is a toolip, with a class of yloca-info. When this is used to define the node, it returns the expected 2 results. The class ".yloca-search-result" also defines the li tags for the ads, but again, html_nodes only returns a single node using this class. </div>
+
+## 3
+<div class="q">(50 points) Modify following parameterized function `get_yelp_sr_one_page` to extract a list of businesses on Yelp, for a specific search keyword, a specific location and a specific page of results.
+
+Add a parameter to the `get_yelp_sr_one_page` function so that it can scrape other pages other than the first page. E.g.,
+`get_yelp_sr_one_page("burgers", page=2)` should return the results in the second page.
+
+The modified function should return a data frame that contains the following information:
+
+- restuarant name
+- url to the yelp page of the restaurant
+- price level
+- service categories
+- telphone number
+- restuarant's neighborhood name, street address, city, state, and zipcode, all in separate columns
+- average rating
+- number of reviews
+- URL to the restaurant's reviews list</div>
+```{r '3 - Fn'}
+`get_yelp_sr_one_page` <- function(key,loc=NA,page=1){
+  makeURL <- function(key,loc=NA,page=1){
+  if(is.character(key)==F){stop("Key must be a character string")
+    break
+  }
+  #Clean Search Query "key"
+  key <- gsub("\\s","+",key) #format spaces appropriately
+  OP <- paste("https://www.yelp.com/search?find_desc=",key,sep="")
+  #Clean Location Query (require stringr, install if not installed)
+  if(is.na(loc)==F){
+    for(i in seq_along(loc)){
+      if(is.character(loc[[i]])==F){
+      loc <- as.character(loc)
+      warning("Warning: Location must be vector of location character strings, coercing to character")
+      }
+    list.of.packages <- c("stringr")
+    new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+      if(length(new.packages)) install.packages(new.packages)
+      library(stringr)
+      ST <- str_extract(loc,",?([A-Z]{2})") #Extract State abbrev if included
+      loc <- gsub("(,?\\s?[A-Z]{2})","",loc) #Remove State Abbrev
+      loc <- gsub("\\s","+",loc) #format spaces appropriately
+        if(is.na(ST)==F & is.character(ST)==T){ST <- paste(ST,":",sep="")
+        loc <- paste("&find_loc=",ST,loc,sep="")
+        } #Add : to ST abbrev
+      OP <- paste(OP,loc,sep="")
+    }
+  }  
+  #Create Page Query if included
+  if(is.numeric(page)==F){
+    stop("Page must be numeric")
+  }
+  if(page>1){page <- (page-1)*10
+    page <- paste("&start=",page,sep="")
+    OP <- paste(OP,page,sep="")
+    }
+  return(OP)
+}
+  URL <- makeURL(key,loc,page)
+  
+  #Get Results
+  h <- read_html(URL)
+  li <- html_nodes(h,css=".regular-search-result")
+  #Extract parameters
+    ind <- str_extract(html_text(html_nodes(li,css=".indexed-biz-name")),"\\d\\d?")
+    nm <- html_text(html_nodes(li,css=".biz-name"))
+    rurl <- html_attr(html_nodes(li,css=".biz-name"),"href")
+    pl <- nchar(html_text(html_nodes(li,css=".price-range")),type="chars")
+    scat <- gsub("\\s{2,}","",html_text(html_nodes(li,css=".category-str-list")))
+    tel <- gsub("\\s{2,}","",html_text(html_nodes(li,css=".biz-phone")))
+    nh <- gsub("\\s{2,}","",html_text(html_nodes(li,css=".neighborhood-str-list")))
+    sa <- gsub("\\s{2,}","",str_extract(html_nodes(li,css="address"),"(?<=\\n)[A-Za-z0-9\\s]+(?=<br>)"))
+    city <- gsub("\\s{2,}","",str_extract(html_nodes(li,css="address"),"(?<=<br>)[A-Za-z0-9\\s]+(?=,)"))
+    ST <- str_extract(html_nodes(li,css="address"),"[A-Z]{2}")
+    zip <- str_extract(html_nodes(li,css="address"),"[0-9]{5}")
+    avr <- str_extract(html_attr(html_nodes(li,css=".i-stars"),"title"),"\\d.\\d")
+    rev <- str_extract(html_text(html_nodes(li,css=".review-count")),"\\d+")
+    revURL <- html_attr(html_nodes(li,css="p.snippet a.nowrap"),"href")
+    #Create a list of values for error checking
+   cols <- list(ind=ind,nm=nm,rurl=rurl,pl=pl,scat=scat,tel=tel,nh=nh,sa=sa,city=city,ST=ST,zip=zip,avr=avr,rev=rev,revURL=revURL)
+   #Test for missing results, if missing repeat the gathering of an element, but use the functions below that add NA for missing values
+   for(i in seq_along(cols)) {
+     if (length(cols[[i]]) < length(cols[[1]])) {
+     do.Index <- (names(cols)[[i]])
+     }
+   }
+   if("nh" %in% do.Index==T){
+     nh <- vector("character")
+   for(i in seq_along(li)){
+     node <- ifelse(
+        is.null(html_node(li[[i]], css=".neighborhood-str-list")), 
+        NA,
+        html_node(li[[i]], css=".neighborhood-str-list")  %>% 
+          html_text()
+    )
+     nh <- append(nh,node,after=length(nh))
+     nh <- gsub("\\s{2,}","",nh)
+   }
+  } 
+   if("tel" %in% do.Index==T){
+     tel <- vector("character")
+   for(i in seq_along(li)){
+     node <- ifelse(
+        is.null(html_nodes(li,css=".biz-phone")), 
+        NA,
+        html_nodes(li,css=".biz-phone")  %>% 
+          html_text()
+    )
+     tel <- append(tel,node,after=length(nh))
+     tel <- gsub("\\s{2,}","",tel)
+   }
+    }
+   if("pl" %in% do.Index==T){
+     pl <- vector("character")
+   for(i in seq_along(li)){
+     node <- ifelse(
+        is.null(html_nodes(li,css=".price-range")), 
+        NA,
+        html_nodes(li,css=".price-range")  %>% 
+          nchars(html_text(),"chars")
+    )
+     pl <- append(pl,node,after=length(pl))
+     pl <- gsub("\\s{2,}","",pl)
+   }
+   }
+   if("sa" %in% do.Index==T){
+     sa <- vector("character")
+   for(i in seq_along(li)){
+     node <- ifelse(
+        is.null(html_nodes(li,css="address")), 
+        NA,
+        html_nodes(li,css="address")  %>% 
+          str_extract("(?<=\\n)[A-Za-z0-9\\s]+(?=<br>)")
+    )
+     sa <- append(sa,node,after=length(sa))
+     sa <- gsub("\\s{2,}","",sa)
+   }
+  }
+   if("city" %in% do.Index==T){
+     city <- vector("character")
+   for(i in seq_along(li)){
+     node <- ifelse(
+        is.null(html_nodes(li,css="address")), 
+        NA,
+        html_nodes(li,css="address")  %>% 
+          str_extract("(?<=<br>)[A-Za-z0-9\\s]+(?=,)")
+    )
+     city <- append(city,node,after=length(city))
+     city <- gsub("\\s{2,}","",city)
+   }
+   }
+   if("ST" %in% do.Index==T){
+     ST <- vector("character")
+   for(i in seq_along(li)){
+     node <- ifelse(
+        is.null(html_nodes(li,css="address")), 
+        NA,
+        html_nodes(li,css="address")  %>% 
+          str_extract("[A-Z]{2}")
+    )
+     ST <- append(ST,node,after=length(ST))
+   }
+   }
+   if("zip" %in% do.Index==T){
+     zip <- vector("character")
+   for(i in seq_along(li)){
+     node <- ifelse(
+        is.null(html_nodes(li,css="address")), 
+        NA,
+        html_nodes(li,css=".price-range")  %>% 
+          str_extract("[0-9]{5}")
+    )
+     zip <- append(zip,node,after=length(zip))
+   }
+   }
+    OP <- cbind.data.frame(ind,nm,rurl,pl,scat,tel,nh,sa,city,ST,zip,avr,rev,revURL)
+    return(OP)
+}
+get_yelp_sr_one_page("vegan",loc="Boston,MA",page=9)
+```
+
