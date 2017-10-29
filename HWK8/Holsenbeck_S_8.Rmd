@@ -122,15 +122,15 @@ dc %>% html_attrs()
 <div class="q">What is the css selector to select restaurants that are advertisements? (You may not see the ads if you are logged in on Yelp or have an ad blocker running.)</div>
 ```{r}
 html1 %>% html_nodes(css=".yloca-tip")
-h %>% html_nodes(css=".yloca-info")
-h %>% html_nodes(css=".yloca-search-result")
+html1 %>% html_nodes(css=".yloca-info")
+html1 %>% html_nodes(css=".yloca-search-result")
 
 
 ```
 
 <div class="a">A)If the "Ad" element is inspected, it is a span tag with a class of yloca-tip, however when this is used with html_nodes, it only returns one result, even though there are two ads per page. On the right had side of each ad is a toolip, with a class of yloca-info. When this is used to define the node, it returns the expected 2 results. The class ".yloca-search-result" also defines the li tags for the ads, but again, html_nodes only returns a single node using this class. </div>
 
-## 3
+## 2
 <div class="q">(50 points) Modify following parameterized function `get_yelp_sr_one_page` to extract a list of businesses on Yelp, for a specific search keyword, a specific location and a specific page of results.
 
 Add a parameter to the `get_yelp_sr_one_page` function so that it can scrape other pages other than the first page. E.g.,
@@ -209,6 +209,7 @@ The modified function should return a data frame that contains the following inf
     #Create a list of values for error checking
    cols <- list(ind=ind,nm=nm,rurl=rurl,pl=pl,scat=scat,tel=tel,nh=nh,sa=sa,city=city,ST=ST,zip=zip,avr=avr,rev=rev,revURL=revURL)
    #Test for missing results, if missing repeat the gathering of an element, but use the functions below that add NA for missing values
+   do.Index <- vector("character")
    for(i in seq_along(cols)){
      if (length(cols[[i]]) < length(cols[[1]])) {
      do.Index <- (names(cols)[[i]])
@@ -303,9 +304,33 @@ The modified function should return a data frame that contains the following inf
      zip <- append(zip,node,after=length(zip))
    }
    }
-    OP <- cbind.data.frame(ind,nm,rurl,pl,scat,tel,nh,sa,city,ST,zip,avr,rev,revURL)
+    OP <- cbind(ind,nm,rurl,pl,scat,tel,nh,sa,city,ST,zip,avr,rev,revURL)
     return(OP)
 }
 get_yelp_sr_one_page("vegan",loc="Boston,MA",page=1)
 ```
+
+## 3,4 
+<div class="q">3. (20 points) Write a function that reads multiple pages of the search results of any search keyword and location from Yelp.
+
+4. (10 points) Optimize your function in question 3, add a small wait time (0.5s for example) between each request, so that you don't get banned by Yelp for abusing their website (hint: use `Sys.sleep()`).
+
+Note that for some queries, Yelp may get a different number of results per page. You would need to either change the way you calculate the URL parameter, or use the `distinct(df)` function to remove duplicate rows.</div>
+
+```{r '3'}
+yelpager <- function(key,loc,pages){
+  fullM <- matrix(ncol=14,nrow=0)
+  for(i in seq_along(pages)){
+  m <- get_yelp_sr_one_page(key,loc,page=i)
+  fullM <- rbind(fullM,m)
+  d <- abs(rnorm(1,0,.5))
+  Sys.sleep(d)
+  }
+  OP <- as.data.frame(fullM,col.names=c("Index","Name","Detail URL","Price","Service Cat.","Tel","Neighborhood","Address","City","ST","Zip","Ave. Rating","Reviews","Review URL"),stringsAsFactors=F)
+  return(OP)
+}
+yelpager("vegan","Boston,MA",1:6)
+```
+
+
 
