@@ -100,13 +100,13 @@ dc <- html1 %>%  html_node('body') %>%
   html_children()
 ```
 
-<div class="a">A)There are 29 direct children of the body tag.</div>
+<div class="a">A)There are ~29-32 direct children of the body tag.</div>
 
 ### b
 <div class="q">What are the node names of the direct descendents of the `<body>`?</div>
 
 ```{r '1b'}
-(nodeNames <- dc %>% html_tag())
+(nodeNames <- dc %>% html_name())
 ```
 
 ### c
@@ -209,7 +209,7 @@ The modified function should return a data frame that contains the following inf
     #Create a list of values for error checking
    cols <- list(ind=ind,nm=nm,rurl=rurl,pl=pl,scat=scat,tel=tel,nh=nh,sa=sa,city=city,ST=ST,zip=zip,avr=avr,rev=rev,revURL=revURL)
    #Test for missing results, if missing repeat the gathering of an element, but use the functions below that add NA for missing values
-   for(i in seq_along(cols)) {
+   for(i in seq_along(cols)){
      if (length(cols[[i]]) < length(cols[[1]])) {
      do.Index <- (names(cols)[[i]])
      }
@@ -247,7 +247,7 @@ The modified function should return a data frame that contains the following inf
         is.null(html_nodes(li,css=".price-range")), 
         NA,
         html_nodes(li,css=".price-range")  %>% 
-          nchars(html_text(),"chars")
+          nchar(html_text(),"chars")
     )
      pl <- append(pl,node,after=length(pl))
      pl <- gsub("\\s{2,}","",pl)
@@ -297,7 +297,7 @@ The modified function should return a data frame that contains the following inf
      node <- ifelse(
         is.null(html_nodes(li,css="address")), 
         NA,
-        html_nodes(li,css=".price-range")  %>% 
+        html_nodes(li,css="address")  %>% 
           str_extract("[0-9]{5}")
     )
      zip <- append(zip,node,after=length(zip))
@@ -306,6 +306,6 @@ The modified function should return a data frame that contains the following inf
     OP <- cbind.data.frame(ind,nm,rurl,pl,scat,tel,nh,sa,city,ST,zip,avr,rev,revURL)
     return(OP)
 }
-get_yelp_sr_one_page("vegan",loc="Boston,MA",page=9)
+get_yelp_sr_one_page("vegan",loc="Boston,MA",page=1)
 ```
 
