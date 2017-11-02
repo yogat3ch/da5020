@@ -318,7 +318,8 @@ The modified function should return a data frame that contains the following inf
 }
 key <- "vegan"
 loc <- "Boston,MA"
-get_yelp_sr_one_page("vegan",loc="Boston,MA",page=1)
+result <- get_yelp_sr_one_page("vegan",loc="Boston,MA",page=1)
+str(result)
 ```
 
 
@@ -342,7 +343,8 @@ yelpager <- function(key,loc,pages){
   OP <- as.data.frame(fullM,col.names=c("Index","Name","Detail URL","Price","Service Cat.","Tel","Neighborhood","Address","City","ST","Zip","Ave. Rating","Reviews","Review URL"),stringsAsFactors=F)
   return(OP)
 }
-yelpager("vegan","Boston,MA",1:10)
+result <- yelpager("vegan","Boston,MA",1:10)
+datatable(result,fillContainer=T,escape=T)
 ```
 
 
