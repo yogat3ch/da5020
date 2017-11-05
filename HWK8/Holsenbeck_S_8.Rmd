@@ -341,11 +341,12 @@ yelpager <- function(key,loc,pages){
   d <- abs(rnorm(1,0,.5))
   Sys.sleep(d)
   }
-  OP <- as.data.frame(fullM,col.names=c("Index","Name","Detail URL","Price","Service Cat.","Tel","Neighborhood","Address","City","ST","Zip","Ave. Rating","Reviews","Review URL"),stringsAsFactors=F)
+  OP <- as.data.frame(fullM,stringsAsFactors=F)
+ names(OP) <- c("Index","Name","Detail URL","Price","Service Cat.","Tel","Neighborhood","Address","City","ST","Zip","Ave. Rating","Reviews","Review URL")
   return(OP)
 }
 result <- yelpager("vegan","Boston,MA",1:10)
-datatable(result,fillContainer=T,escape=T)
+datatable(result,fillContainer=T,escape=T,filter=list(position = 'top', clear = TRUE, plain = FALSE),height=800)
 ```
 
 
