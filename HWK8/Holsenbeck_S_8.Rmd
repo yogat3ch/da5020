@@ -119,8 +119,10 @@ dc <- html1 %>%  html_node('body') %>%
 <div class="q">How many of these direct descendents have an `id` attribute?</div>
 
 **1c**
-```{r '1c'}
-dc %>% html_attr(name="id")
+```{r '1c',results='asis',eval=F}
+#Note: this code works when running from R, but errors when Knitting. I set this chunk to not evaluate to prevent the error.
+ids <- dc %>% html_attr(name="id",default=NA)
+(ids <- ids[!is.na(ids)])
 ```
 
 <div class="a">A)Three of the descendents have an 'id' attribute.</div>
