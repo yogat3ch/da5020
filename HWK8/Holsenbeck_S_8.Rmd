@@ -26,6 +26,7 @@ library("magrittr")
 library("htmltools")
 library("DT")
 library("rvest")
+library("stringr")
 ```
 
 
@@ -119,7 +120,7 @@ dc <- html1 %>%  html_node('body') %>%
 
 **1c**
 ```{r '1c'}
-dc %>% html_attrs()
+dc %>% html_attr(name="id")
 ```
 
 <div class="a">A)Three of the descendents have an 'id' attribute.</div>
