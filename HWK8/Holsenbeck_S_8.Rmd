@@ -348,7 +348,7 @@ yelpager <- function(key,loc,pages){
   return(OP)
 }
 result <- yelpager("vegan","Boston,MA",1:10)
-datatable(result,fillContainer=T,escape=T,filter=list(position = 'top', clear = TRUE, plain = FALSE),height=800)
+datatable(result,escape=T,filter=list(position = 'top', clear = TRUE, plain = FALSE),options = list(pageLength = 10, dom = 'tip',scrollX = T))
 ```
 
 
